@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bulk Sender</title>
+    <link rel="stylesheet" href="/assets/global.css">
+</head>
+<body>
+    <div class="container">
+        <h1>WhatsApp Bulk Sender</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <div>
+                <label for="file">CSV File:</label>
+                <input type="file" required id="file" name="file">
+            </div>
+            <div>
+                <label for="message">Message:</label>
+                <textarea id="message" required name="message"></textarea>
+            </div>
+            <button type="submit">Send Messages</button>
+        </form>
+        <div id="loader"></div>
+        <!-- <a href="/logout" id="logout-btn">Logout</a> -->
+
+    </div>
+    <script>
+        document.querySelector('form').addEventListener('submit', function() {
+            document.querySelector('#loader').style.display = 'block';
+        });
+    </script>
+</body>
+</html>

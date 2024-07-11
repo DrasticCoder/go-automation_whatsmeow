@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Bulk Sender Analytics</title>
+    <link rel="stylesheet" href="/assets/global.css">
+</head>
+<body>
+    <div class="container">
+        <h1>WhatsApp Bulk Sender Analytics</h1>
+    
+        <h2>Message Sending Statistics</h2>
+        <p><strong>Total Sent:</strong> {{ .TotalSent }}</p>
+        <p><strong>Total Failed:</strong> {{ .TotalFailed }}</p>
+        <p><strong>Total Reacted:</strong> {{ .TotalReacted }}</p>
+        <p><strong>Total Replied:</strong> {{ .TotalReplied }}</p>
+    
+        <h2>Incoming Messages</h2>
+        <ul>
+            {{ range .Incoming }}
+            <li>{{ . }}</li>
+            {{ end }}
+        </ul>
+    
+        <div class="loader"></div>
+    </div>
+
+</body>
+</html>
