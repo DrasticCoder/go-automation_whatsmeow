@@ -15,15 +15,9 @@
         <p><strong>Total Failed:</strong> {{ .TotalFailed }}</p>
         <p><strong>Total Reacted:</strong> {{ .TotalReacted }}</p>
         <p><strong>Total Replied:</strong> {{ .TotalReplied }}</p>
-    
-        <h2>Incoming Messages</h2>
-        <ul>
-            {{ range .Incoming }}
-            <li>{{ . }}</li>
-            {{ end }}
-        </ul>
-    
-        <div class="loader"></div>
+
+        <button onclick="window.location.href='/messages'" class="messages">Go to Messages</button>
+        <button onclick="window.location.href='/send'" class="primary">Go to Send</button>
     </div>
 
 </body>

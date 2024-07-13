@@ -186,6 +186,14 @@ func main() {
 		})
 	})
 
+	router.GET("/view-messages", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"incomingMessages": analytics.Incoming})
+	})
+
+	router.GET("/messages", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "messages.html", nil)
+	})
+
 	router.POST("/upload", uploadCSV)
 
 	router.GET("/qr-code", func(c *gin.Context) {

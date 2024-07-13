@@ -209,3 +209,66 @@ strong {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+button.messages {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+}
+
+button.messages:hover {
+    background-color: #0056b3;
+}
+
+.message-container {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 0 8px 8px 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #e8e9fb;
+}
+
+.message-number {
+    font-weight: bold;
+    color: #007bff;
+    margin-right: 10px;
+}
+
+.message-text {
+    color: #333;
+    font-size: 16px;
+    line-height: 2;
+    display: block;
+}
+
+button.secondary{
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+}
+
+button.primary {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+}
+
+.button-wrapper {
+    margin-bottom: 20px;
+    text-align: center;
+}

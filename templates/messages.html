@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incoming Messages</title>
+    <link rel="stylesheet" href="/assets/global.css">
+    <script>
+        function fetchMessages() {
+            fetch('/view-messages')
+                .then(response => response.json())
+                .then(data => {
+                    const messagesDiv = document.getElementById('messages');
+                    messagesDiv.innerHTML = '';
+                    data.incomingMessages.forEach(message => {
+                        const separatorIndex = message.indexOf(':');
+                        if (separatorIndex !== -1) {
+                            const number = message.substring(5, separatorIndex); // Extract number part
+                            const text = message.substring(separatorIndex + 1); // Extract message part
+
+                            const container = document.createElement('div');
+                            container.classList.add('message-container');
+
+                            const numberElement = document.createElement('span');
+                            numberElement.classList.add('message-number');
+                            numberElement.textContent = number.trim();
+
+                            const textElement = document.createElement('span');
+                            textElement.classList.add('message-text');
+                            textElement.textContent = text.trim();
+
+                            container.appendChild(numberElement);
+                            container.appendChild(textElement);
+                            messagesDiv.appendChild(container);
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching messages:', error));
+        }
+
+        setInterval(fetchMessages, 2000); // Fetch messages every 2 seconds
+        window.onload = fetchMessages; // Fetch messages when the page loads
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Incoming Messages</h1>
+        <div class="button-wrapper">
+            <button onclick="window.location.href='/analytics'" class="primary">Go to Analytics</button>
+            <button onclick="window.location.href='/send'" class="primary">Go to Send</button>
+        </div>
+        <div id="messages"></div>
+        <div class="loader"></div>
+    </div>
+</body>
+</html>
