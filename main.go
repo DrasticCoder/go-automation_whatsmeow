@@ -53,14 +53,6 @@ func eventHandler(evt interface{}) {
 			fmt.Printf("Received message from %s: %s\n", v.Info.Sender.User, *v.Message.ExtendedTextMessage.Text)
 			analytics.Incoming = append(analytics.Incoming, fmt.Sprintf("From %s: %s", v.Info.Sender.User, *v.Message.ExtendedTextMessage.Text))
 		}
-		// if v.Message.Status != nil {
-		//  switch v.Message.GetStatus() {
-		//  case waE2E.MessageStatus_REPLIED:
-		//      analytics.TotalReplied++
-		//  case waE2E.MessageStatus_REACTION:
-		//      analytics.TotalReacted++
-		//  }
-		// }
 	}
 }
 
@@ -199,6 +191,10 @@ func main() {
 	router.GET("/qr-code", func(c *gin.Context) {
 		c.Header("Content-Type", "image/png")
 		c.Writer.Write(qrCode)
+	})
+
+	router.GET("/login-status", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"loggedIn": loggedIn})
 	})
 
 	srv := &http.Server{

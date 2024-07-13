@@ -2,11 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>WhatsApp QR Code</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan QR Code</title>
 </head>
 <body>
-    <h1>Scan this QR code to login to WhatsApp</h1>
-    <img id="qr" src="/qr-code" alt="QR Code">
-    <p>If the QR code does not display, please refresh the page.</p>
+    <h1>Scan QR Code</h1>
+    <img src="/qr-code" alt="QR Code">
+    <script>
+        function checkLoginStatus() {
+            fetch('/login-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.loggedIn) {
+                        window.location.href = "/send";
+                    }
+                })
+                .catch(error => console.error('Error checking login status:', error));
+        }
+        setInterval(checkLoginStatus, 2000); // Check every 2 seconds
+    </script>
 </body>
 </html>
