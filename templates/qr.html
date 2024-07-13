@@ -2,33 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Bulk Sender - Login</title>
-    <link rel="stylesheet" href="/assets/global.css">
-    <script>
-        function fetchQR() {
-            fetch('/getqr') // Endpoint to fetch QR code image
-                .then(response => {
-                    console.log(response)
-
-                    response.blob()})
-                .then(blob => {
-                    document.getElementById('qr-code').innerHTML = '<img src="' + URL.createObjectURL(blob) + '" alt="QR Code">';
-                    document.getElementById('qr-status').innerText = 'QR Code scanned';
-                })
-                .catch(error => console.error('Error fetching QR code:', error));
-        }
-
-        fetchQR(); // Fetch QR code immediately when page loads
-    </script>
+    <title>WhatsApp QR Code</title>
 </head>
 <body>
-    <div class="container">
-        <h1>WhatsApp Bulk Sender - Login</h1>
-        <div id="qr-container">
-            <div id="qr-code"></div>
-            <p id="qr-status">Scan QR Code to Login</p>
-        </div>
-    </div>
+    <h1>Scan this QR code to login to WhatsApp</h1>
+    <img id="qr" src="/qr-code" alt="QR Code">
+    <p>If the QR code does not display, please refresh the page.</p>
 </body>
 </html>

@@ -15,7 +15,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/mdp/qrterminal/v3"
+	"github.com/skip2/go-qrcode"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/proto/waE2E"
 	"go.mau.fi/whatsmeow/store/sqlstore"
@@ -29,6 +29,7 @@ var (
 	client    *whatsmeow.Client
 	loggedIn  bool
 	analytics Analytics
+	qrCode    []byte
 )
 
 type Analytics struct {
@@ -71,7 +72,11 @@ func connectClient() error {
 		}
 		for evt := range qrChan {
 			if evt.Event == "code" {
-				qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
+				var err error
+				qrCode, err = qrcode.Encode(evt.Code, qrcode.Medium, 256)
+				if err != nil {
+					return err
+				}
 			} else {
 				fmt.Println("Login event:", evt.Event)
 			}
@@ -157,10 +162,6 @@ func main() {
 	client = whatsmeow.NewClient(deviceStore, clientLog)
 	client.AddEventHandler(eventHandler)
 
-	if err := connectClient(); err != nil {
-		log.Fatalf("Failed to connect client: %v", err)
-	}
-
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
 	router.Static("/assets", "./assets")
@@ -195,16 +196,30 @@ func main() {
 
 	router.POST("/upload", uploadCSV)
 
+	router.GET("/qr-code", func(c *gin.Context) {
+		c.Header("Content-Type", "image/png")
+		c.Writer.Write(qrCode)
+	})
+
 	srv := &http.Server{
 		Addr:    ":8080",
 		Handler: router,
 	}
 
+	// Start the server in a goroutine
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
+
+	// Wait for the server to start
+	time.Sleep(1 * time.Second)
+
+	// Connect the WhatsApp client and render the QR code
+	if err := connectClient(); err != nil {
+		log.Fatalf("Failed to connect client: %v", err)
+	}
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
