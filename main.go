@@ -172,6 +172,7 @@ func main() {
 
 	router.GET("/logout", func(c *gin.Context) {
 		loggedIn = false
+		client.Logout()
 		client.Disconnect()
 		c.Redirect(http.StatusSeeOther, "/")
 	})
@@ -206,7 +207,7 @@ func main() {
 	})
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":8000",
 		Handler: router,
 	}
 
