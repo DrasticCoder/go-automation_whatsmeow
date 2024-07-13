@@ -158,7 +158,7 @@ func main() {
 	router.LoadHTMLGlob("templates/*")
 	router.Static("/assets", "./assets")
 
-	router.GET("/", func(c *gin.Context) {
+	router.GET("/qr", func(c *gin.Context) {
 		if !loggedIn {
 			c.HTML(http.StatusOK, "qr.html", nil)
 			return
@@ -166,8 +166,16 @@ func main() {
 		c.Redirect(http.StatusSeeOther, "/send")
 	})
 
+	router.GET("/", func(c *gin.Context) {
+		if !loggedIn {
+			c.HTML(http.StatusOK, "index.html", nil)
+			return
+		}
+		c.Redirect(http.StatusSeeOther, "/send")
+	})
+
 	router.GET("/send", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", nil)
+		c.HTML(http.StatusOK, "send.html", nil)
 	})
 
 	router.GET("/logout", func(c *gin.Context) {
@@ -178,10 +186,14 @@ func main() {
 	})
 
 	router.GET("/analytics", func(c *gin.Context) {
+		if !loggedIn {
+			c.Redirect(http.StatusSeeOther, "/qr")
+			return
+		}
 		c.HTML(http.StatusOK, "analytics.html", gin.H{
 			"TotalSent":    analytics.TotalSent,
 			"TotalFailed":  analytics.TotalFailed,
-			"TotalReplied": analytics.TotalReplied,
+			"TotalReplied": len(analytics.Incoming),
 			"TotalReacted": analytics.TotalReacted,
 			"Incoming":     analytics.Incoming,
 		})
@@ -192,6 +204,10 @@ func main() {
 	})
 
 	router.GET("/messages", func(c *gin.Context) {
+		if !loggedIn {
+			c.Redirect(http.StatusSeeOther, "/qr")
+			return
+		}
 		c.HTML(http.StatusOK, "messages.html", nil)
 	})
 
