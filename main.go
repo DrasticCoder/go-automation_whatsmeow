@@ -95,9 +95,34 @@ func sendMessages(users []string, text string) {
 		fmt.Printf("Sent message with ID: %s to %s\n", resp.ID, user)
 		analytics.TotalSent++
 
-		// Simulate reaction and reply for demonstration purposes
-		time.Sleep(2 * time.Second)
+		time.Sleep(2 * time.Second) // Simulate reaction and reply for demonstration purposes
 	}
+}
+
+// New handler for sending message to an array of numbers
+func sendMessagesAPI(c *gin.Context) {
+	var requestData struct {
+		Numbers []string `json:"numbers"`
+		Message string   `json:"message"`
+	}
+
+	// Parse the JSON request body
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
+		return
+	}
+
+	// Check if numbers and message are provided
+	if len(requestData.Numbers) == 0 || strings.TrimSpace(requestData.Message) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Both numbers and message are required"})
+		return
+	}
+
+	// Send the message to each number
+	sendMessages(requestData.Numbers, requestData.Message)
+
+	// Respond with success
+	c.JSON(http.StatusOK, gin.H{"status": "Messages sent successfully"})
 }
 
 func uploadCSV(c *gin.Context) {
@@ -221,6 +246,9 @@ func main() {
 	router.GET("/login-status", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"loggedIn": loggedIn})
 	})
+
+	// New route for sending message via POST /send-msg
+	router.POST("/send-msg", sendMessagesAPI)
 
 	srv := &http.Server{
 		Addr:    ":8000",
