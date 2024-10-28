@@ -7,8 +7,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
@@ -165,6 +167,25 @@ func uploadCSV(c *gin.Context) {
 	c.Redirect(http.StatusSeeOther, "/analytics")
 }
 
+func openBrowser(url string) {
+	var err error
+
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		err = fmt.Errorf("unsupported platform")
+	}
+
+	if err != nil {
+		log.Printf("Failed to open browser: %v\n", err)
+	}
+}
+
 func main() {
 	dbLog := waLog.Stdout("Database", "DEBUG", true)
 	container, err := sqlstore.New("sqlite3", "file:examplestore.db?_foreign_keys=on", dbLog)
@@ -261,6 +282,7 @@ func main() {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
+	openBrowser("http://localhost:8000")
 
 	// Wait for the server to start
 	time.Sleep(1 * time.Second)
