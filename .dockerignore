@@ -1,0 +1,9 @@
+*.db
+*.csv
+*.log
+*.tmp
+node_modules
+dist
+vendor
+.DS_Store
+*.exe

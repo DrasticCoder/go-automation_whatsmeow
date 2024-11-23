@@ -11,10 +11,13 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"syscall"
+	"text/template"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/skip2/go-qrcode"
@@ -41,6 +44,16 @@ type Analytics struct {
 	TotalReacted int
 	Incoming     []string
 }
+
+// Define the Template structure
+type Template struct {
+	ID      int    `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
+var templates = make(map[int]Template)
+var nextID = 1 // Simple ID auto-increment
 
 func eventHandler(evt interface{}) {
 	switch v := evt.(type) {
@@ -186,7 +199,130 @@ func openBrowser(url string) {
 	}
 }
 
+// Create a new template
+func createTemplate(c *gin.Context) {
+	var newTemplate Template
+	if err := c.ShouldBindJSON(&newTemplate); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
+		return
+	}
+
+	// Assign an ID and store the template
+	newTemplate.ID = nextID
+	templates[nextID] = newTemplate
+	nextID++
+
+	c.JSON(http.StatusCreated, newTemplate)
+}
+
+// Get all templates
+func getTemplates(c *gin.Context) {
+	var templateList []Template
+	for _, tmpl := range templates {
+		templateList = append(templateList, tmpl)
+	}
+	c.JSON(http.StatusOK, templateList)
+}
+
+// Get a single template by ID
+func getTemplate(c *gin.Context) {
+	id := c.Param("id")
+	templateID, err := strconv.Atoi(id)
+	if err != nil || templateID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid template ID"})
+		return
+	}
+
+	template, exists := templates[templateID]
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Template not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, template)
+}
+
+// Update a template by ID
+func updateTemplate(c *gin.Context) {
+	id := c.Param("id")
+	templateID, err := strconv.Atoi(id)
+	if err != nil || templateID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid template ID"})
+		return
+	}
+
+	var updatedTemplate Template
+	if err := c.ShouldBindJSON(&updatedTemplate); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid data"})
+		return
+	}
+
+	template, exists := templates[templateID]
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Template not found"})
+		return
+	}
+
+	// Update the template
+	template.Title = updatedTemplate.Title
+	template.Content = updatedTemplate.Content
+	templates[templateID] = template
+
+	c.JSON(http.StatusOK, template)
+}
+
+// Delete a template by ID
+func deleteTemplate(c *gin.Context) {
+	id := c.Param("id")
+	templateID, err := strconv.Atoi(id)
+	if err != nil || templateID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid template ID"})
+		return
+	}
+
+	_, exists := templates[templateID]
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Template not found"})
+		return
+	}
+
+	// Delete the template
+	delete(templates, templateID)
+
+	c.JSON(http.StatusOK, gin.H{"status": "Template deleted"})
+}
+
+// Helper function to render the template
+func renderTemplate(content string, username, coupon string) (string, error) {
+	tmpl, err := template.New("template").Parse(content)
+	if err != nil {
+		return "", err
+	}
+
+	data := struct {
+		Username string
+		Coupon   string
+	}{
+		Username: username,
+		Coupon:   coupon,
+	}
+
+	var renderedContent strings.Builder
+	err = tmpl.Execute(&renderedContent, data)
+	if err != nil {
+		return "", err
+	}
+
+	return renderedContent.String(), nil
+}
+
 func main() {
+	// Create a CORS configuration allowing localhost:1212 (desktop app)
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:1212"}
+	corsConfig.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
+
 	dbLog := waLog.Stdout("Database", "DEBUG", true)
 	container, err := sqlstore.New("sqlite3", "file:examplestore.db?_foreign_keys=on", dbLog)
 	if err != nil {
@@ -201,6 +337,9 @@ func main() {
 	client.AddEventHandler(eventHandler)
 
 	router := gin.Default()
+
+	router.Use(cors.New(corsConfig))
+
 	router.LoadHTMLGlob("templates/*")
 	router.Static("/assets", "./assets")
 
@@ -271,6 +410,13 @@ func main() {
 	// New route for sending message via POST /send-msg
 	router.POST("/send-msg", sendMessagesAPI)
 
+	// Templates Routes
+	router.GET("/templates", getTemplates)          // List all templates
+	router.GET("/templates/:id", getTemplate)       // Get a specific template
+	router.POST("/templates", createTemplate)       // Create a new template
+	router.PUT("/templates/:id", updateTemplate)    // Update an existing template
+	router.DELETE("/templates/:id", deleteTemplate) // Delete a template
+
 	srv := &http.Server{
 		Addr:    ":8000",
 		Handler: router,
@@ -282,7 +428,7 @@ func main() {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
-	openBrowser("http://localhost:8000")
+	// openBrowser("http://localhost:8000")
 
 	// Wait for the server to start
 	time.Sleep(1 * time.Second)
