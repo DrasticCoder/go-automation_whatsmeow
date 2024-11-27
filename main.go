@@ -370,6 +370,17 @@ func main() {
 		c.Redirect(http.StatusSeeOther, "/")
 	})
 
+	// get analytics data in json
+	router.GET("/analytics-data", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"TotalSent":    analytics.TotalSent,
+			"TotalFailed":  analytics.TotalFailed,
+			"TotalReplied": len(analytics.Incoming),
+			"TotalReacted": analytics.TotalReacted,
+			"Incoming":     analytics.Incoming,
+		})
+	})
+
 	router.GET("/analytics", func(c *gin.Context) {
 		if !loggedIn {
 			c.Redirect(http.StatusSeeOther, "/qr")
